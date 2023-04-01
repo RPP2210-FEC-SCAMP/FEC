@@ -4,24 +4,30 @@ import axios from 'axios';
 import QACard from './QACard.jsx';
 import AddQuestion from './AddQuestion.jsx';
 import AddAnswer from './AddAnswer.jsx';
+import QASearchBar from './QASearchBar.jsx';
+import getImagePath from '../lib/fileReader.js';
+import missing from '../lib/filterMissing.js';
 
 const QA = ({ id, product_name }) => {
   const [questions, setQuestions] = useState([]);
-  const [question, setQuestion] = useState('');
+  const [question, setQuestion] = useState({});
   const [questionText, setQuestionText] = useState('');
   const [answerText, setAnswerText] = useState('');
   const [nickname, setNickname] = useState('');
   const [email, setEmail] = useState('');
+  const [thumbnail, setThumbnail] = useState('');
+  const [photos, setPhotos] = useState([]);
   const [showQuestionModal, setShowQuestionModal] = useState(false);
   const [showAnswerModal, setShowAnswerModal] = useState(false);
-  const [showMore, setShowMore] = useState(false);
+  const [moreQuestions, setMoreQuestions] = useState(false);
+  const [search, setSearch] = useState('');
 
   useEffect((() => {
     async function fetchQuestions() {
       try {
         let options = {
           'url': '/questions',
-          'params': {product_id: 71701}, //place the id prop here,
+          'params': {product_id: 71697}, //place the id prop here,
           'method': 'get'
         }
         let result = await axios.request(options);
@@ -43,30 +49,44 @@ const QA = ({ id, product_name }) => {
       'product_id': id
     }
 
+    if (questionText === '' || nickname === '' || email === '') {
+      alert(`You must enter the following: ${missing(body)}`);
+      return;
+    }
+
     try {
-      if (questionText === '' || nickname === '' || email === '') {
-        let missing = Object.keys(body)
-          .filter(field => body[`${field}`] === '')
-          .join(', ');
-        alert(`You must enter the following: ${missing}`);
-      } else {
-        await axios.post('/questions/add', body);
-        alert(`Thank you for submitting your question: ${body.question}`);
-      }
+      await axios.post('/questions/add', body);
+      alert(`Thank you for submitting your question: ${body.question}`);
     } catch (err) {
       alert('Your question was not submitted due to some internal error. Please try again shortly');
     }
   };
 
-
-  const onSubmitAnswer = (e) => {
+  const onSubmitAnswer = async (e) => {
     e.preventDefault();
     let body = {
-      'answer': answer,
+      'answer': answerText,
       'nickname': nickname,
       'email': email,
-      'product_id': id
+      'photos': photos,
+      'question_id': question.question_id
     }
+
+    if (answerText === '' || nickname === '' || email === '') {
+      alert(`You must enter the following: ${missing(body)}`);
+      return;
+    }
+
+    try {
+      await axios.post('/answer/add', body);
+      alert(`Thank you for submitting your answer: ${body.answer}`);
+    } catch (err) {
+      alert('Your answer was not submitted due to some internal error. Please try again shortly');
+    }
+  };
+
+  const isHelpful = async (e, id) => {
+    await axios.put('/question/helpful', {'question_id': id });
   };
 
   const onChangeQuestion = (e) => {
@@ -85,31 +105,42 @@ const QA = ({ id, product_name }) => {
     setEmail(e.target.value);
   };
 
+  const onInputPhoto = async (e) => {
+    let photo = await getImagePath(e.target.files[0]);
+
+    if (thumbnail === '') {setThumbnail(photo)};
+    setPhotos([...photos, photo]);
+  };
+
   const toggleShowQuestionModal =  (e) => {
     setShowQuestionModal(!showQuestionModal);
   };
 
-  const toggleShowAnswerModal = (e, question) => {
+  const toggleShowAnswerModal = (e, question, id) => {
     setShowAnswerModal(!showAnswerModal);
-    setQuestion(question);
+    setQuestion({'question_id': id, 'question': question});
   };
 
-  const toggleShowMore = (e) => {
-    setShowMore(!showMore);
+  const toggleMoreQuestions = (e) => {
+    setMoreQuestions(!moreQuestions);
   };
 
-  const sortedQuestions = [...questions].sort((a, b) => {
+  const onSearch = (e) => {
+    setSearch(e.target.value);
+  };
+
+  let sortedAndFilteredQuestions = [...questions].filter((question) => {
+   return question.question_body.toLowerCase().includes(search.toLowerCase());
+  })
+  .sort((a, b) => {
     return a['question_helpfulness'] - b['question_helpfulness'];
-  });
-
-  const helpfulQuestions = sortedQuestions.map((question) =>
+  }).map((question) =>
       <QACard
         key={question.question_id}
         id={question.question_id}
         question={question.question_body}
-        // date={question['question_date']}
-        // name={question['asker_name']}
         helpfulness={question.question_helpfulness}
+        isHelpful={isHelpful}
         reported={question.reported}
         answers={question.answers}
         toggleShowAnswerModal={toggleShowAnswerModal}
@@ -119,22 +150,19 @@ const QA = ({ id, product_name }) => {
   return (
     <>
       <div className='QA'>
-        {/* Q&A for {JSON.stringify(helpfulQuestions)} */}
-        {/* {helpfulQuestions} */}
-        {!showMore ? helpfulQuestions[0] : helpfulQuestions}
-        {!showMore && helpfulQuestions[1]}
+        <QASearchBar onSearch={onSearch} search={search}/>
+
+        {!moreQuestions ? sortedAndFilteredQuestions[0] : sortedAndFilteredQuestions}
+        {!moreQuestions && sortedAndFilteredQuestions[1]}
         {
-        showMore && helpfulQuestions.length > 2
-        && <button className='QA-ShowMore' onClick={toggleShowMore}>Less Answered Questions</button>
+        moreQuestions && sortedAndFilteredQuestions.length > 2
+        && <button className='QA-More-Questions' onClick={toggleMoreQuestions}>Less Answered Questions</button>
         }
         {
-        !showMore && helpfulQuestions.length > 2
-        && <button className='QA-ShowMore' onClick={toggleShowMore}>More Answered Questions</button>
+        !moreQuestions && sortedAndFilteredQuestions.length > 2
+        && <button className='QA-More-Questions' onClick={toggleMoreQuestions}>More Answered Questions</button>
         }
-        {/* Button to add question if */}
         <button onClick={toggleShowQuestionModal}>Ask a question</button>
-        {/* AddQuestion Modal here */}
-        {/* Pass product name as proops to AddQuestion */}
         {/* Double check if Addquestion is a Modal/test for it */}
         {showQuestionModal && createPortal(
           <AddQuestion
@@ -144,6 +172,7 @@ const QA = ({ id, product_name }) => {
             onChangeNickname={onChangeNickname}
             onChangeEmail={onChangeEmail}
             onSubmitQuestion={onSubmitQuestion}
+            toggleShowQuestionModal={toggleShowQuestionModal}
           />
           ,document.body
         )}
@@ -151,11 +180,16 @@ const QA = ({ id, product_name }) => {
         {showAnswerModal && createPortal(
           <AddAnswer
             product_name={product_name}
-            question_body={question}
+            question_body={question.question}
+            id={question.question_id}
+            thumbnail={thumbnail}
+            length={photos.length}
             onChangeAnswer={onChangeAnswer}
             onChangeNickname={onChangeNickname}
             onChangeEmail={onChangeEmail}
+            onInputPhoto={onInputPhoto}
             onSubmitAnswer={onSubmitAnswer}
+            toggleShowAnswerModal={toggleShowAnswerModal}
          />
          , document.body
         )}

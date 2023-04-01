@@ -39,8 +39,8 @@ html {
 .reviews {
   display: flex;
   justify-content: center;
-  width: 1000px;
-  font-family: 'Verdana';
+  width: 1200px;
+  font-family: Geneva;
 }
 
 .reviewsOver {
@@ -58,6 +58,7 @@ html {
   font-size: 12px;
   padding-left: 5px;
   position: relative;
+  margin-right: 20px;
 }
 
 .averageStars {
@@ -203,11 +204,20 @@ html {
 
 .reviewBody {
   overflow-wrap: anywhere;
-  font-size: smaller;
+  font-size: small;
+  margin-top: 10px;
 }
 
 .reviewSummary {
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
+  font-size: large;
+}
+
+.sumRemain {
+  font-size: 11px;
+  font-weight: normal;
+  margin-top: 5px;
+  margin-bottom: 5px;
 }
 
 .reviewHelpfulness {
@@ -218,6 +228,12 @@ html {
 
 .yesBtn {
   margin-right: 3px;
+  margin-left: 3px;
+}
+
+.reportBtn {
+  margin-left: 3px;
+  margin-bottom: 3px;
 }
 
 .line {
@@ -235,9 +251,18 @@ html {
 
 .totalDescript {
   font-weight: bold;
-  font-size: small;
+    font-size: small;
   padding-bottom: 10px;
 }
+
+
+
+.carousel-container {
+  display: flex;
+  flex-wrap: nowrap;
+}
+
+
 
 .addReviewBtn, .moreReviewsBtn {
   height: 40px;
@@ -256,6 +281,24 @@ html {
   width: 500px;
   height: 500px;
   overflow: scroll;
+  font-family: Geneva;
+
+}
+
+.rnTitle {
+  font-weight: bold;
+  font-size: larger;
+}
+
+.rnSubtitle {
+  font-size: smaller;
+  margin-left: 5px;
+  margin-bottom: 20px;
+}
+
+.rnContainer {
+  height: 1000px;
+  justify-content: space-between;
 }
 
 .charButtonsRow {
@@ -286,6 +329,56 @@ html {
 }
 
 .reviewThumbnail {
-  height: 50px;
-  width: 50px;
+  max-width: 50px;
+  max-height: 50px;
+  width: auto;
+  height: auto;
+  margin-right: 10px;
+}
+
+.reviewPhotos {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+}
+
+.reviewPhotoModal {
+  max-height: 500px;
+  max-width: 500px;
+  width: auto;
+  height: auto;
+}
+
+#reviewModal {
+  max-width: 500px;
+  width: auto;
+  background-color: transparent;
+}
+
+.closeButton {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  border: none;
+  background-color: white;
+}
+
+.searchReviews {
+  margin-top: 500px;
+  font-weight: bold;
+  font-size: x-small;
+}
+
+.increaseReviewBody {
+  margin-top: 15px;
+  text-decoration: underline;
+}
+
+.reviewResponse {
+  background-color: lightgrey;
+  font-size: x-small;
+  margin-top: 5px;
+  margin-bottom: 7px;
 }

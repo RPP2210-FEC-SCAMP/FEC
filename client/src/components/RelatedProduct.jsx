@@ -1,19 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import Modal from './Modal.jsx';
-import getProduct from '../lib/getProduct.js';
-import getImages from '../lib/getImages.js';
-import getProductReviewMetadata from '../lib/getProductReviewMetadata.js';
-import calculateAverage from '../lib/averageCalc.jsx';
-import calcTotal from '../lib/totalCalc.jsx';
 
-const RelatedProduct = ({originalProduct, relatedProductID}) => {
+import Modal from './Modal.jsx';
+import ShadedStar from './ShadedStar.jsx';
+
+import getHandler from '../lib/getHandler.js';
+import createFeatureSet from '../lib/createFeatureSet.js';
+import calculateAverage from '../lib/averageCalc.jsx';
+import calculateTotal from '../lib/totalCalc.jsx';
+
+const RelatedProduct = (props) => {
   const [relatedProduct, setRelatedProduct] = useState({});
   const [productImages, setProductImages] = useState([{thumbnail_url: 'blah'}]);
   const [modalState, setModalState] = useState(false);
   const [featureSet, setFeatureSet] = useState([]);
   const [averageRating, setAverageRating] = useState(0);
-  const [totalRating, setTotalRating] = useState(0);
+  const [salePrice, setSalePrice] = useState(null);
+  const [stars, setStars] = useState(0);
+  // const [totalRating, setTotalRating] = useState(0);
 
   const showModal = () => {
     setModalState(true);
@@ -23,62 +27,76 @@ const RelatedProduct = ({originalProduct, relatedProductID}) => {
     setModalState(false);
   };
 
-  // const createFeatureSet = () => {
-  //   var newFeatureSet = new Set();
-  //   newFeatureSet.add(props.originalProduct.features.map(
-  //       (originalProductFeatures) => {
-  //         console.log(originalProductFeatures)
-  //         return originalProductFeatures['features'];
-  //       }))
-  //     .add(relatedProduct.features.map(
-  //       (relatedProductFeatures) => {
-  //         console.log(relatedProductFeatures)
-  //         return relatedProductFeatures['features'];
-  //       }))
-  //   setFeatureSet([...newFeatureSet]);
-  // };
+  useEffect(() => {
+    getHandler('/product', props.relatedProductID, (response) => {
+      setRelatedProduct(response.data);
+    });
+    getHandler('/styles', props.relatedProductID, (response) => {
+      for (var i = 0; i < response.data.length; i++) {
+        if (response.data[i]['default?']) {
+          setProductImages(response.data[i].photos);
+          setSalePrice(response.data[i].sale_price);
+          break;
+        }
+      }
+    });
+    getHandler('reviewsMeta', props.relatedProductID, (response) => {
+      setAverageRating(calculateAverage(calculateTotal(response), response.data));
+    });
+  }, [props.relatedProductID]);
 
   useEffect(() => {
-    getProduct(relatedProductID, setRelatedProduct);
-    getImages(relatedProductID, setProductImages);
-    getProductReviewMetadata(relatedProductID, console.log)
-  }, []);
+    setStars(((Math.round(averageRating * 4) / 4).toFixed(2)));
+  }, [averageRating]);
 
-  //console.log(props.originalProduct.features);
-  //console.log(relatedProduct.features);
+  useEffect(() => {
+    setFeatureSet(createFeatureSet(props.originalProduct, relatedProduct));
+  }, [relatedProduct]);
 
   return (
-    <div className='related-product'>
-      <button className='related-product-action-button' onClick={() => {showModal()}}>⭐</button>
-      <Modal className='related-product-comparison-modal' show={modalState} handleClose={() => {hideModal()}} >
-        <div className='related-product-comparison-modal-title'>Comparison</div>
+    <div className='related-product' data-testid='related-product' >
+      <button className='related-product-action-button' onClick={() => { showModal(); }}>⭐</button>
+      <Modal show={modalState} handleClose={() => { hideModal(); }} >
+        <div data-testid="modal" className='related-product-comparison-modal'>Product Comparison</div>
         <table>
           <thead>
             <tr>
-              <th>{originalProduct.name}</th>
-              <th></th>
-              <th>{relatedProduct.name}</th>
+              <th>{typeof props.originalProduct !== undefined ? null : props.originalProduct.name}</th>
+              <th> | features | </th>
+              <th>{relatedProduct.name ? relatedProduct.name : null}</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>Emil</td>
-              <td>Tobias</td>
-              <td>Linus</td>
-            </tr>
-            <tr>
-              <td>16</td>
-              <td>14</td>
-              <td>10</td>
-            </tr>
+            {featureSet.map((featureObj) => {
+              return (
+                <tr>
+                  <td>{featureObj.originalValue ? featureObj.originalValue : null}</td>
+                  <td>{featureObj.feature}</td>
+                  <td>{featureObj.relatedValue ? featureObj.relatedValue : null}</td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
       </Modal>
-      <div className='preview-image' onClick={() => {getProduct(relatedProductID)}}><img src={productImages[0].thumbnail_url} alt={relatedProduct.description}></img></div>
+      <div className='preview-image' onClick={() => { props.setProduct(relatedProduct.id); }}><img src={productImages[0].thumbnail_url} alt={relatedProduct.description}></img></div>
       <div className='product-category' >Category: {relatedProduct.category}</div>
       <div className='product-name' >Name: {relatedProduct.name}</div>
-      <div className='product-price' >Price: {relatedProduct.default_price}</div>
-      <div className='product-rating' >Star Rating: {/* {relatedProduct.} */}</div>
+      <div className='product-price' >Price: {
+        salePrice ? <div><s>relatedProduct.default_price</s><p style="color:red;">salePrice</p></div> : relatedProduct.default_price
+        }
+      </div>
+      <div className='product-rating' data-testid='product-rating' >Rating:
+        <div className='averageStars'>
+          <div>
+            {'★'.repeat(Math.floor(stars))}
+          </div>
+          <ShadedStar shade={stars % 1}/>
+          <div>
+            {'☆'.repeat(5-Math.floor(stars))}
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
