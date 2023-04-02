@@ -33,23 +33,27 @@ const QACard = ({ id, question, helpfulness, reported, answers, isHelpful, toggl
 
   return (
     <div className='QACard'>
-      QACard id={id}
-      <div  className='Question'>Q: {question}</div>
-      <span>Helpful?</span>
-      {
-        helpful === false ?
-        <span onClick={onClickHelpful}>Yes ({helpfulness})</span> :
-        <span>Yes ({helpfulness + 1})</span>
-      }
-      {/* Add Answer button below */}
-      <div className='Question-add' onClick={(e) => toggleShowAnswerModal(e, question, id)}>Add answer</div>
-      A:
-      {!moreAnswers ? answerComponent[0] : answerComponent}
-      {!moreAnswers && answerComponent[1]}
-      {!moreAnswers && answerComponent.length > 2
-      && <div className='QA-more' onClick={toggleMoreAnswers}>See more answers</div>}
-      {moreAnswers && <div className='QA-more' onClick={toggleMoreAnswers}>Collapse answers</div>}
+      <div className='Question'>
+        <div>Q: {question}</div>
+        <div className='QA-Option'>
+          <span className='Helpful'>Helpful?</span>
+          {
+            helpful === false ?
+            <span onClick={onClickHelpful}>Yes ({helpfulness})  |</span> :
+            <span>Yes ({helpfulness + 1})</span>
+          }
+          <span className='Question-add' onClick={(e) => toggleShowAnswerModal(e, question, id)}>   Add answer</span>
+        </div>
+      </div>
 
+      <div className='QA-Answer'>
+        A:
+        {!moreAnswers ? answerComponent[0] : answerComponent}
+        {!moreAnswers && answerComponent[1]}
+        {!moreAnswers && answerComponent.length > 2
+        && <div className='QA-more' onClick={toggleMoreAnswers}>See more answers</div>}
+        {moreAnswers && <div className='QA-more' onClick={toggleMoreAnswers}>Collapse answers</div>}
+      </div>
     </div>
   );
 }

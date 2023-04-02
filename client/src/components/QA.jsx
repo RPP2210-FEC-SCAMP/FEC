@@ -150,6 +150,7 @@ const QA = ({ id, product_name }) => {
   return (
     <>
       <div className='QA'>
+        <h3>QUESTIONS & ANSWERS</h3>
         <QASearchBar onSearch={onSearch} search={search}/>
 
         {!moreQuestions ? sortedAndFilteredQuestions[0] : sortedAndFilteredQuestions}
