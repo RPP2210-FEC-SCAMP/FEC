@@ -86,7 +86,7 @@ const QA = ({ id, product_name }) => {
   };
 
   const isHelpful = async (e, id) => {
-    await axios.put('/question/helpful', {'question_id': id });
+    await axios.put('/questions/helpful', {'question_id': id });
   };
 
   const onChangeQuestion = (e) => {
