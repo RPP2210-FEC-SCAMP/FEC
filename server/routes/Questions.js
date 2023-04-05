@@ -10,8 +10,8 @@ app.get('/', async (req, res) => {
     'url': api.QUESTIONS,
     'params': {
       'product_id': req.query.product_id,
-      'page': 2,
-      'count': 10
+      'page': 3,
+      'count': 100
     },
     'headers': {
       'Authorization': api.TOKEN

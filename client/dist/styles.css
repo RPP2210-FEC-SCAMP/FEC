@@ -397,6 +397,13 @@ html {
   margin-bottom: 5%;
   margin-top: 5%;
   padding-right: 10px;
+
+}
+
+.QA-List {
+  overflow: scroll;
+  min-height: 100px;
+  max-height: 900px;
 }
 
 .QASearchBar {

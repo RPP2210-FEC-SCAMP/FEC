@@ -85,7 +85,7 @@ const QA = ({ id, product_name }) => {
     }
   };
 
-  const isHelpful = async (e, id) => {
+  const onClickQuestionHelpful = async (e, id) => {
     await axios.put('/questions/helpful', {'question_id': id });
   };
 
@@ -140,7 +140,7 @@ const QA = ({ id, product_name }) => {
         id={question.question_id}
         question={question.question_body}
         helpfulness={question.question_helpfulness}
-        isHelpful={isHelpful}
+        isHelpful={onClickQuestionHelpful}
         reported={question.reported}
         answers={question.answers}
         toggleShowAnswerModal={toggleShowAnswerModal}
@@ -152,9 +152,10 @@ const QA = ({ id, product_name }) => {
       <div className='QA'>
         <h3>QUESTIONS & ANSWERS</h3>
         <QASearchBar onSearch={onSearch} search={search}/>
-
-        {!moreQuestions ? sortedAndFilteredQuestions[0] : sortedAndFilteredQuestions}
-        {!moreQuestions && sortedAndFilteredQuestions[1]}
+        <div className='QA-List'>
+          {!moreQuestions ? sortedAndFilteredQuestions[0] : sortedAndFilteredQuestions}
+          {!moreQuestions && sortedAndFilteredQuestions[1]}
+        </div>
         {
         moreQuestions && sortedAndFilteredQuestions.length > 2
         && <button className='QA-More-Questions' onClick={toggleMoreQuestions}>Less Answered Questions</button>
@@ -164,7 +165,6 @@ const QA = ({ id, product_name }) => {
         && <button className='QA-More-Questions' onClick={toggleMoreQuestions}>More Answered Questions</button>
         }
         <button onClick={toggleShowQuestionModal}>Ask a question</button>
-        {/* Double check if Addquestion is a Modal/test for it */}
         {showQuestionModal && createPortal(
           <AddQuestion
             product_id={id}
